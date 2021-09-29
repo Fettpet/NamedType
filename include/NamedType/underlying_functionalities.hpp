@@ -15,7 +15,7 @@
 #if FLUENT_CPP17_PRESENT
 #    define FLUENT_CONSTEXPR17 constexpr
 #else
-#    define FLUENT_CONSTEXPR17 
+#    define FLUENT_CONSTEXPR17
 #endif
 
 namespace fluent
@@ -118,7 +118,7 @@ struct BinarySubtractable : crtp<T, BinarySubtractable>
         return this->underlying();
     }
 };
-   
+
 template <typename T>
 struct UnarySubtractable : crtp<T, UnarySubtractable>
 {
@@ -127,14 +127,14 @@ struct UnarySubtractable : crtp<T, UnarySubtractable>
         return T(-this->underlying().get());
     }
 };
-   
+
 template <typename T>
 struct Subtractable : BinarySubtractable<T>, UnarySubtractable<T>
 {
     using UnarySubtractable<T>::operator-;
     using BinarySubtractable<T>::operator-;
 };
-   
+
 template <typename T>
 struct Multiplicable : crtp<T, Multiplicable>
 {
@@ -275,19 +275,12 @@ struct Comparable : crtp<T, Comparable>
     {
         return !(*this < other);
     }
-// On Visual Studio before 19.22, you cannot define constexpr with friend function
-// See: https://stackoverflow.com/a/60400110
-#if defined(_MSC_VER) && _MSC_VER < 1922
-    FLUENT_NODISCARD constexpr bool operator==(T const& other) const
+
+    FLUENT_NODISCARD constexpr bool operator==(Comparable<T> const& other) const
     {
-        return !(*this < other) && !(other.get() < this->underlying().get());
+        return !(this->underlying() < other.underlying()) && !(other.underlying().get() < this->underlying().get());
     }
-#else
-    FLUENT_NODISCARD friend constexpr bool operator==(Comparable<T> const& self, T const& other)
-    {
-        return !(self < other) && !(other.get() < self.underlying().get());
-    }
-#endif
+
     FLUENT_NODISCARD constexpr bool operator!=(T const& other) const
     {
         return !(*this == other);
